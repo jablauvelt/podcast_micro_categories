@@ -70,6 +70,7 @@ for sub_idx, ss in enumerate(sub_genre_list):
 	# and episode information
 	#FOR TESTING: pp = podcast_list[0]; pod_idx=0
 	for pod_idx, pp in enumerate(podcast_list):
+		#if pod_idx < 14: continue
 
 		pod_name =  unicodedata.normalize('NFKD', pp[0]).encode('ascii', 'replace').decode()
 		pod_href = pp[1]
@@ -93,7 +94,11 @@ for sub_idx, ss in enumerate(sub_genre_list):
 		driver.get(pod_href)
 
 		# Get main show description
-		show_desc = driver.find_element_by_xpath("//div[@class='product-review']/p").text
+		try:
+			show_desc = driver.find_element_by_xpath("//div[@class='product-review']/p").text
+		except NoSuchElementException:
+			print("No main show description for this one")
+			show_desc = 'N/A'
 
 		# Do another check for UTF-8 characters
 		show_desc = unicodedata.normalize('NFKD', show_desc).encode('ascii', 'replace').decode()
@@ -115,8 +120,11 @@ for sub_idx, ss in enumerate(sub_genre_list):
 			num_ratings = 'N/A'
 
 		# Get Author (by)
-		by = driver.find_element_by_xpath("//div[@class='left']/h2").text
-		by = re.sub('^By ', '', by)
+		try:
+			by = driver.find_element_by_xpath("//div[@class='left']/h2").text
+			by = re.sub('^By ', '', by)
+		except NoSuchElementException:
+			print("No Author (by) for this one")
 
 		# Get "More By ..."
 		more_by_els = driver.find_elements_by_xpath("//div[@class='extra-list more-by']//a[@class='name']")
@@ -124,7 +132,6 @@ for sub_idx, ss in enumerate(sub_genre_list):
 
 		# Get "Listeners also subscribed to ..."
 		also_sub_els = driver.find_elements_by_xpath("//div[@class='swoosh lockup-container podcast large']//a[@class='name']/span")
-		assert len(also_sub_els) == 5
 		also_sub_vals = [i.text	for i in also_sub_els]
 
 		# Get website
@@ -136,17 +143,13 @@ for sub_idx, ss in enumerate(sub_genre_list):
 
 		# Create a dict with show-level data
 		pod_dict = {
+			'show_desc': show_desc,
 			'rating': rating,
 			'genre': genre,
 			'subgenre': sub_genre_name,
 			'podcast_name': pod_name,
 			'by': by,
 			'num_ratings': num_ratings,
-			'also_sub_1': also_sub_vals[0],
-			'also_sub_2': also_sub_vals[1],
-			'also_sub_3': also_sub_vals[2],
-			'also_sub_4': also_sub_vals[3],
-			'also_sub_5': also_sub_vals[4],
 			'website': website
 		}
 
@@ -154,6 +157,11 @@ for sub_idx, ss in enumerate(sub_genre_list):
 		for idx, val in enumerate(more_by_vals):
 			if idx > 10: break
 			pod_dict['more_by_' + str(idx+1)] = val
+
+		# Add the "also sub" podcasts, up to 5
+		for idx, val in enumerate(also_sub_vals):
+			if idx > 4: break
+			pod_dict['also_sub_' + str(idx+1)] = val
 
 		# Add the pod_dict to the show_list
 		show_list.append(pod_dict)
@@ -181,7 +189,7 @@ for sub_idx, ss in enumerate(sub_genre_list):
 				print("Script element #" + str(sc_idx+1) + " appeared to have release date but didn't parse correctly!")
 
 		# Quick pause before moving to the next one
-		random_sleep()
+		#random_sleep()
 
 	# Subgenre complete - print status
 	print("Subgenre " + sub_genre_name + ' complete')
@@ -195,6 +203,3 @@ for sub_idx, ss in enumerate(sub_genre_list):
 	df_ep.to_csv('C:/Users/jblauvelt/Desktop/projects/podcast_micro_categories/raw/ep_' + sub_genre_name + '.csv', index=False)
 	df_pod.to_csv('C:/Users/jblauvelt/Desktop/projects/podcast_micro_categories/raw/pod_' + sub_genre_name + '.csv', index=False)
 
-
-# Don't forget comedy! might not have been captured
-# add podcast website
