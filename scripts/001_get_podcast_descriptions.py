@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 import json
 
+already_complete = ['Design', 'Fashion & Beauty', 'Food', 'Literature']
 
 def random_sleep():
 	time.sleep(max(random.gauss(2.5, 1), random.gauss(1.05, .1), .72))
@@ -24,11 +25,12 @@ def random_sleep():
 
 # Initate driver and open Firefox window
 driver = webdriver.Firefox()
-driver.implicitly_wait(15)
+driver.implicitly_wait(5)
 driver.maximize_window()
 
 # Navigate to podcast main page
 driver.get("https://itunes.apple.com/us/genre/podcasts/id26?mt=2")
+random_sleep()
 
 # Get list of genres [TODO: Map these to sub-genres]
 genre_names = driver.find_elements_by_xpath("//div[@id='genre-nav']//a[@class='top-level-genre']")
@@ -49,11 +51,15 @@ for sub_idx, ss in enumerate(sub_genre_list):
 	sub_genre_name = ss[0]
 	sub_genre_href = ss[1]
 
+	if sub_genre_name in already_complete:
+		print(sub_genre_name + ' already complete')
+		continue
+
 	# Wait a few seconds and navigate to the subgenre
-	random_sleep()
 	print("Stating subgenre " + sub_genre_name + ' (' + 
 		str(sub_idx+1) + '/' + str(len(sub_genre_list)) + ')')
 	driver.get(sub_genre_href)
+	random_sleep()
 
 	# obtain the main genre from the breadcrumbs
 	genre = driver.find_elements_by_xpath("//ul[@class='list breadcrumb']/li/a")[1].text
@@ -77,7 +83,7 @@ for sub_idx, ss in enumerate(sub_genre_list):
 
 		# Print podcast parsing progress 
 		#if pod_idx % 48 == 0:
-		print("Starting %d / %d: %s" % (pod_idx, len(podcast_list), pod_name))
+		print("Starting %d / %d: %s" % (pod_idx + 1, len(podcast_list), pod_name))
 
 		# TEMP: only do a few per genre
 		#if pod_idx > 2:
@@ -90,8 +96,21 @@ for sub_idx, ss in enumerate(sub_genre_list):
 			continue
 
 		# Navigate to the next podcast page
-		random_sleep()
 		driver.get(pod_href)
+		random_sleep()
+
+		# Get language
+		try:
+			lang = driver.find_element_by_xpath("//li[@class='language']").text
+			lang = re.sub('^Language: ', '', lang)
+		except NoSuchElementException:
+			print("No language given")
+			lang = 'N/A'
+
+		# Skip if not English
+		if lang != 'English':
+			print("Not in English (based on stated language)")
+			continue
 
 		# Get main show description
 		try:
@@ -105,9 +124,6 @@ for sub_idx, ss in enumerate(sub_genre_list):
 		if re.search('\\?\\?\\?', show_desc):
 			print("Doesn't seem to be in english (based on show description)")
 			continue
-
-		# Get the list of script elements with the episode descriptions
-		script_els = driver.find_elements_by_xpath("//table[@class='track-list-inline-details']//script")
 
 		# Get rating and number of ratings 
 		try:
@@ -166,9 +182,16 @@ for sub_idx, ss in enumerate(sub_genre_list):
 		# Add the pod_dict to the show_list
 		show_list.append(pod_dict)
 
+		# Get the list of script elements with the episode descriptions
+		# Obtain the full html string using the lxml.html package. This is much faster than
+		# looping through the rows using Selenium, for whatever reason
+		root = lxml.html.fromstring(driver.page_source)
+		script_els = root.xpath("//table[@class='track-list-inline-details']//script")
+
 		# Loop through script elements and extract JSON objects
 		for sc_idx, sc in enumerate(script_els):
-			txt = sc.get_attribute('innerHTML')
+			#txt = sc.get_attribute('innerHTML')
+			txt = sc.text
 
 			# Check for bad script elements
 			if not re.search('release_date', txt):
