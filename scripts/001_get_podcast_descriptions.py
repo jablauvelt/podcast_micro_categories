@@ -17,7 +17,8 @@ import numpy as np
 import pandas as pd
 import json
 
-already_complete = ['Design', 'Fashion & Beauty', 'Food', 'Literature']
+#already_complete = ['Design', 'Fashion & Beauty', 'Food', 'Literature']
+already_complete = ['Performing Arts']
 
 def random_sleep():
 	time.sleep(max(random.gauss(2.5, 1), random.gauss(1.05, .1), .72))
