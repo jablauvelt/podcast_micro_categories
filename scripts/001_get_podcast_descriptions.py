@@ -17,8 +17,6 @@ import numpy as np
 import pandas as pd
 import json
 
-#already_complete = ['Design', 'Fashion & Beauty', 'Food', 'Literature']
-already_complete = ['Performing Arts']
 
 def random_sleep():
 	time.sleep(max(random.gauss(2.5, 1), random.gauss(1.05, .1), .72))
@@ -26,7 +24,7 @@ def random_sleep():
 
 # Initate driver and open Firefox window
 driver = webdriver.Firefox()
-driver.implicitly_wait(5)
+driver.implicitly_wait(10)
 driver.maximize_window()
 
 # Navigate to podcast main page
@@ -51,6 +49,10 @@ sub_genre_list.append(['TV & Film', 'https://itunes.apple.com/us/genre/podcasts-
 for sub_idx, ss in enumerate(sub_genre_list):
 	sub_genre_name = ss[0]
 	sub_genre_href = ss[1]
+
+	# Check for already completed subgenres
+	already_complete = os.listdir('C:/Users/jblauvelt/Desktop/projects/podcast_micro_categories/raw')
+	already_complete = set([re.sub('ep\\_|pod\\_|\\.csv$', '', i) for i in already_complete])
 
 	if sub_genre_name in already_complete:
 		print(sub_genre_name + ' already complete')
