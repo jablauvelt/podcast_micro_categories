@@ -1,3 +1,14 @@
+### Podcast Micro-Categories
+### Author: Jason Blauvelt
+# Notes:
+#	Before running this script, you should have the following project directory structure:
+#	
+#	podcast_micro_categories/
+#		/raw   (this is where the CSV files are stored)
+#		/scripts  (this is where this script should be stored)
+#
+# 	You should run this script from the root of the project directory structure ("podcast_micro_categories/")
+
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -51,7 +62,7 @@ for sub_idx, ss in enumerate(sub_genre_list):
 	sub_genre_href = ss[1]
 
 	# Check for already completed subgenres
-	already_complete = os.listdir('C:/Users/jblauvelt/Desktop/projects/podcast_micro_categories/raw')
+	already_complete = os.listdir('raw')
 	already_complete = set([re.sub('ep\\_|pod\\_|\\.csv$', '', i) for i in already_complete])
 
 	if sub_genre_name in already_complete:
@@ -226,6 +237,6 @@ for sub_idx, ss in enumerate(sub_genre_list):
 	df_ep = pd.DataFrame(ep_list)
 	df_pod = pd.DataFrame(show_list)
 
-	df_ep.to_csv('C:/Users/jblauvelt/Desktop/projects/podcast_micro_categories/raw/ep_' + sub_genre_name + '.csv', index=False)
-	df_pod.to_csv('C:/Users/jblauvelt/Desktop/projects/podcast_micro_categories/raw/pod_' + sub_genre_name + '.csv', index=False)
+	df_ep.to_csv('raw/ep_' + sub_genre_name + '.csv', index=False)
+	df_pod.to_csv('raw/pod_' + sub_genre_name + '.csv', index=False)
 
