@@ -9,6 +9,9 @@
 #
 # 	You should run this script from the root of the project directory structure ("podcast_micro_categories/")
 
+from __future__ import print_function
+from __future__ import division
+
 import os
 import sys
 import zipfile
