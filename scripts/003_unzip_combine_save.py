@@ -56,9 +56,10 @@ print(eps.shape)
 pods = pd.concat(pod_list)
 print(pods.shape)
         
+del ep_list, pod_list
+gc.collect()
         
 # Step 3: Save dataframes as feather objects
-gc.collect()
 feather.write_dataframe(eps,'interim/eps.feather') 
 feather.write_dataframe(pods,'interim/pods.feather')
 
