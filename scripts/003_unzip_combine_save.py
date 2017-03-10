@@ -60,7 +60,7 @@ print(pods.shape)
 # Step 3: Save dataframes as feather objects
 gc.collect()
 feather.write_dataframe(eps,'interim/eps.feather') 
-feather.write_dataframe(pods,'pods.feather')
+feather.write_dataframe(pods,'interim/pods.feather')
 
 # Save 10% samples too
 pods_samp = pods.sample(frac=.1)
