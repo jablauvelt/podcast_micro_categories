@@ -12,6 +12,8 @@ To test:
 
   conda list
 
+# Pandas
+conda install -c anaconda pandas=0.19.2
 
 # Feather
 To install feather, I had to use Linux (the version on Google Cloud) and the following commmand:
