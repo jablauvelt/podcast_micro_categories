@@ -1,3 +1,18 @@
+# Conda Installer
+If you know you've installed Anaconda but you're getting this error:
+
+  conda: command not found
+
+you may need to add the anaconda2 directory to the shell PATH variable:
+
+  export PATH="/home/username/anaconda2/bin:$PATH"
+  
+Make sure to replace your username in the above command and double-check your folder structure.
+To test:
+
+  conda list
+
+
 # Feather
 To install feather, I had to use Linux (the version on Google Cloud) and the following commmand:
 
