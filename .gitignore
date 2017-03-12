@@ -1,3 +1,4 @@
 raw/*.csv
 interim/eps*.feather
 interim/pods*.feather
+notebooks/.ipynb_checkpoints
