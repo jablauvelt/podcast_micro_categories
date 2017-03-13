@@ -1,5 +1,5 @@
 ### Podcast Micro-Categories
-### Author: Samantha Brownstein & Jason Blauvelt
+### Author: Samantha Brownstein
 
 # Notes:
 #     Before running this script, you should have the following project directory structure:
