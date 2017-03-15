@@ -1,5 +1,4 @@
 ### Podcast Micro-Categories
-### Author: Samantha Brownstein
 
 # Notes:
 #     Before running this script, you should have the following project directory structure:
@@ -14,59 +13,55 @@
 from __future__ import print_function
 from __future__ import division
 
-import gc
-import os
-import re
-import zipfile as zf
-import pandas as pd
-import feather
+from nltk.stem import WordNetLemmatizer
 
-# Step 1: unzip files
 
-ep_list = []
-pod_list = []
-for item in os.listdir('raw'): # loop through items in /raw
-    if item.endswith('.zip'): # check for ".zip" extension
+####  functions below require: nltk.download('stopwords','punkt','wordnet')
 
-        print(item)
+# Word processing functions
+def canonicalize_digits(word):
+    if any([c.isalpha() for c in word]): return word
+    word = re.sub("\d", "DG", word)
+    if word.startswith("DG"):
+        word = word.replace(",", "") # remove thousands separator
+    return word
 
-        zip_ref = zf.ZipFile('raw/' + item) # create Zipfile object
-        
-        # Extract both files directly into memory, parse as Pandas DataFrame (adding the subgenre column),
-        # and add to list of DFs, which will be combined later
-        for fl in zip_ref.namelist():
-            if fl.startswith('ep_'):
-                df = pd.read_csv(zip_ref.open(fl), encoding = "ISO-8859-1")
-                df['subgenre'] = [re.sub('\\.zip', '', item)] * df.shape[0]
-                ep_list.append(df)
-            elif fl.startswith('pod_'):
-                df = pd.read_csv(zip_ref.open(fl), encoding = "ISO-8859-1")
-                df['subgenre'] = [re.sub('\\.zip', '', item)] * df.shape[0]
-                pod_list.append(df)
+def canonicalize_word(word, wordset=None, digits=True):
+    word = word.lower()
+    if digits:
+        if (wordset != None) and (word in wordset): return word
+        word = canonicalize_digits(word) # try to canonicalize numbers
+    if (wordset == None) or (word in wordset): return word
+    else: return "<unk>" # unknown token
 
-        zip_ref.close() # close file
+def canonicalize_words(words, **kw):
+    return [canonicalize_word(word, **kw) for word in words]
 
-# Step 2: Combine lists of dataframes
+#tokenizer
+def tokenize(words):
+    # first tokenize by sentence, then by word to ensure that punctuation is caught as its own token
+    tokens = [word.lower() for sent in nltk.sent_tokenize(words) for word in nltk.word_tokenize(sent)]
+    filtered_tokens = []
+    # filter out any tokens not containing letters (e.g., numeric tokens, raw punctuation)
+    for token in tokens:
+        if re.search('[a-zA-Z]', token):
+            filtered_tokens.append(token)
+    return filtered_tokens
 
-# Concatenate episodes tables
-eps = pd.concat(ep_list)
-print(eps.shape)
+#stem
+def stem(words):
+    # first tokenize by sentence, then by word to ensure that punctuation is caught as its own token
+    tokens = [word for sent in nltk.sent_tokenize(words) for word in nltk.word_tokenize(sent)]
+    filtered_tokens = []
+    # filter out any tokens not containing letters (e.g., numeric tokens, raw punctuation)
+    for token in tokens:
+        if re.search('[a-zA-Z]', token):
+            filtered_tokens.append(token)
+    stems = [stemmer.stem(t) for t in filtered_tokens]
+    return stems
 
-# Concatenate podcast (show) tables
-pods = pd.concat(pod_list)
-print(pods.shape)
-        
-del ep_list, pod_list
-gc.collect()
-        
-# Step 3: Save dataframes as feather objects
-feather.write_dataframe(eps,'interim/eps.feather') 
-feather.write_dataframe(pods,'interim/pods.feather')
-
-# Save 10% samples too
-pods_samp = pods.sample(frac=.1)
-eps_samp = eps[eps['podcast_name'].isin(pods_samp['podcast_name'])]
-
-feather.write_dataframe(eps_samp, 'interim/eps_samp.feather')
-feather.write_dataframe(pods_samp, 'interim/pods_samp.feather')
-
+#lemmatize
+def lemmatize(words):
+    lem = WordNetLemmatizer()
+    lems = [lem.lemmatize(word) for word in words]
+    return lems
