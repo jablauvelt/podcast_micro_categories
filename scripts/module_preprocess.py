@@ -6,7 +6,8 @@
 
 # NOTE: Before running for the first time, run the following commands: 
 #        nltk.download('stopwords')
-#        nltk.download('wordnet') -- currently not used as of 3/21/2017
+#        nltk.download('wordnet') 
+#        nltk.download('punkt') 
 
 from __future__ import print_function
 from __future__ import division
