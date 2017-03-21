@@ -22,6 +22,12 @@ import zipfile as zf
 import pandas as pd
 import feather
 
+def try_norm(x):
+    try:
+        return unicodedata.normalize('NFKD', x)
+    except TypeError:
+        return ''
+    
 # Step 1: unzip files
 
 ep_list = []
@@ -39,12 +45,10 @@ for item in os.listdir('raw'): # loop through items in /raw
             if fl.startswith('ep_'):
                 df = pd.read_csv(zip_ref.open(fl), encoding = "ISO-8859-1")
                 df['subgenre'] = [re.sub('\\.zip', '', item)] * df.shape[0]
-                df['description'] = df['description'].to_string()
                 ep_list.append(df)
             elif fl.startswith('pod_'):
                 df = pd.read_csv(zip_ref.open(fl), encoding = "ISO-8859-1")
                 df['subgenre'] = [re.sub('\\.zip', '', item)] * df.shape[0]
-                df['show_desc'] = df['show_desc'].to_string()
                 pod_list.append(df)
 
         zip_ref.close() # close file
@@ -65,9 +69,9 @@ gc.collect()
 # Step 3: Convert unicode to ASCII
 def try_norm(x):
     try:
-        return unicodedata.normalize('NFKD', x)
+        return unicodedata.normalize('NFKD', x).encode('ascii', errors='ignore')
     except TypeError:
-        return ''
+        return None
     
 eps['description'] = eps['description'].map(try_norm)
 pods['show_desc'] = pods['show_desc'].map(try_norm)
