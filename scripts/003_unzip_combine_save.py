@@ -20,7 +20,7 @@ import re
 import unicodedata
 import zipfile as zf
 import pandas as pd
-import feather
+import pickle
 
 def try_norm(x):
     try:
@@ -77,14 +77,18 @@ eps['description'] = eps['description'].map(try_norm)
 pods['show_desc'] = pods['show_desc'].map(try_norm)
 
 
-# Step 4: Save dataframes as feather objects
-feather.write_dataframe(eps,'interim/eps.feather') 
-feather.write_dataframe(pods,'interim/pods.feather')
+# Step 4: Save dataframes as pickle objects
+with open('interim/eps.p', 'wb') as fp:
+    pickle.dump(eps, fp)
+with open('interim/pods.p', 'wb') as fp:
+    pickle.dump(pods, fp)
 
 # Save 10% samples too
 pods_samp = pods.sample(frac=.1)
 eps_samp = eps[eps['podcast_name'].isin(pods_samp['podcast_name'])]
 
-feather.write_dataframe(eps_samp, 'interim/eps_samp.feather')
-feather.write_dataframe(pods_samp, 'interim/pods_samp.feather')
+with open('interim/eps_samp.p', 'wb') as fp:
+    pickle.dump(eps_samp, fp)
+with open('interim/pods_samp.p', 'wb') as fp:
+    pickle.dump(pods_samp, fp)
 
