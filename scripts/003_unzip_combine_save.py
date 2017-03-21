@@ -17,6 +17,7 @@ from __future__ import division
 import gc
 import os
 import re
+import unicodedata
 import zipfile as zf
 import pandas as pd
 import feather
@@ -38,10 +39,12 @@ for item in os.listdir('raw'): # loop through items in /raw
             if fl.startswith('ep_'):
                 df = pd.read_csv(zip_ref.open(fl), encoding = "ISO-8859-1")
                 df['subgenre'] = [re.sub('\\.zip', '', item)] * df.shape[0]
+                df['description'] = df['description'].to_string()
                 ep_list.append(df)
             elif fl.startswith('pod_'):
                 df = pd.read_csv(zip_ref.open(fl), encoding = "ISO-8859-1")
                 df['subgenre'] = [re.sub('\\.zip', '', item)] * df.shape[0]
+                df['show_desc'] = df['show_desc'].to_string()
                 pod_list.append(df)
 
         zip_ref.close() # close file
@@ -58,8 +61,19 @@ print(pods.shape)
         
 del ep_list, pod_list
 gc.collect()
-        
-# Step 3: Save dataframes as feather objects
+
+# Step 3: Convert unicode to ASCII
+def try_norm(x):
+    try:
+        return unicodedata.normalize('NFKD', x)
+    except TypeError:
+        return ''
+    
+eps['description'] = eps['description'].map(try_norm)
+pods['show_desc'] = pods['show_desc'].map(try_norm)
+
+
+# Step 4: Save dataframes as feather objects
 feather.write_dataframe(eps,'interim/eps.feather') 
 feather.write_dataframe(pods,'interim/pods.feather')
 
