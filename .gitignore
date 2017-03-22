@@ -2,3 +2,4 @@ raw/*.csv
 interim/*
 */.ipynb_checkpoints/*
 scripts/*.pyc
+scripts/*~

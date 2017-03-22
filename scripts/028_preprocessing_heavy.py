@@ -16,6 +16,7 @@ import time
 import numpy as np
 import pandas as pd
 import nltk
+import textmining
 import pickle
 
 import module_preprocess
@@ -53,11 +54,13 @@ def tokenizer(x):
 	return module_preprocess.tokenize(x,  rmv_all_digits = True, rmv_stopwords = True, stop_word_set = module_preprocess.stop_word_set, 
              						   lowercase = True, lemmatize = True, lemmatizer = lemmatizer)
 
-
 print("Processing")
 start = time.time()
-pods['show_desc_tokens'] = pods['show_desc'].map(lambda x: tokenizer(x), na_action = 'ignore')
-eps['description_tokens'] = eps['description'].map(lambda x: tokenizer(x), na_action = 'ignore')
+
+# Create a Term Document Matrix out of the descriptions
+tdm = textmining.TermDocumentMatrix(tokenizer)
+for txt in eps['description']:
+    tdm.add_doc(txt)
 
 print((time.time() - start) / 60)
 
@@ -65,9 +68,12 @@ print((time.time() - start) / 60)
 
 print("Exporting")
 start = time.time()
-pods.to_pickle('interim/028_preproc_heavy_pods.p')
-eps.to_pickle('interim/028_preproc_heavy_eps.p')
+eps[['podcast_name', 'subgenre']].to_pickle('interim/028_preproc_heavy_eps.p')
+tdm.write_csv('interim/028_preproc_heavy_tdm.p', cutoff=1)
 
 print((time.time() - start) / 60)
-
 print((time.time() - start0) / 60)
+
+# TODO
+# remove shows with fewer than X episodes
+# add show summary descriptions?
