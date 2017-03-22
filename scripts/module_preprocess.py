@@ -12,10 +12,12 @@
 from __future__ import print_function
 from __future__ import division
 
+from sklearn.feature_extraction.text import CountVectorizer
 import string
-import re
+import regex as re
 import nltk
 from nltk.corpus import stopwords
+
 
 
 ### I. Define helper sets -------------------------------------------
@@ -23,58 +25,51 @@ from nltk.corpus import stopwords
 # A. Stop words
 stop_word_set = set(stopwords.words("english"))
 
+# B. Lemmatizer
+lemmatizer = nltk.stem.WordNetLemmatizer()
+
         
 ### II. Tokenizer function -------------------------------------------------------
 
 # Tokenize a single text block
 def tokenize(text, rmv_all_digits = False, require_letter = False, 
-             canonicalize_digits = False, rmv_stopwords = False, stop_word_set = None, 
-             lowercase = False, lemmatize = False, lemmatizer = None,
-             stem = False, stemmer = None, canonicalize_word = False, canon = None):
+             canonicalize_digits = False, lowercase = False, lemmatizer = None,
+             stemmer = None, canonicalize_word = False, canon = None):
+
+    # For lemmatizer: Try nltk.stem.WordNetLemmatizer()
+    # For stemmer: Try nltk.stem.SnowballStemmer('english')
     
-    # Check argument consistency
-    if rmv_stopwords and not stop_word_set:
-        return "Error: If rmv_stopwords = True, you need to specify *stop_word_set*"
+    # 1. Check argument consistency
     if canonicalize_word and not canon:
         return "Error: If canonicalize_word = True, you need to specify *canon*"
     if canonicalize_word:
         print("NOTE: Make sure your canon is preprocessed in the same way as the arguments you specify. So if you want to lemmatize, lemmatize your canon too.")
-    if lemmatize and stem:
+    if lemmatizer and stemmer:
         return "Do not lemmatize *and* stem - choose one"
-    if lemmatize and not lemmatizer:
-        return "Error: If lemmatizer = True, you need to specify *lemmatizer*. Try nltk.stem.WordNetLemmatizer()."
-    if stem and not stemmer:
-        return "Error: If stemmer = True, you need to specify *stemmer*. Try nltk.stem.SnowballStemmer('english')."
     
    
-    # Loop through the words in the text block and apply preprocessing steps
+    # 2. Loop through the words in the text block and apply preprocessing steps
     tokens = []
     for word in nltk.word_tokenize(text):
+
         # i. Remove punctuation (always on)
-        word = word.translate(None, string.punctuation)
-        if not word:
-            continue
+        word = re.sub(ur"\p{P}+", "", word)
         # ii. Remove all digits
         if rmv_all_digits:
-            word = word.translate(None, string.digits)
-            if not word:
+            word = re.sub(ur"\d", "", word)
+        # iii. Check word length
+        if len(word) < 2:
                 continue
-        # iii. Require letter
+        # iv. Require letter
         if require_letter and not re.search('[a-zA-Z]', word):
             continue
-        # iv. Remove stopwords 
-        if rmv_stopwords and word.lower() in stop_word_set:
-            continue
-        # v. Lowercase 
-        if lowercase:
-            word = word.lower()
-        # vi. lemmatize
-        if lemmatize:
+        # v. lemmatize
+        if lemmatizer:
             word = lemmatizer.lemmatize(word)
-        # vii. stem
-        if stem:
+        # vi. stem
+        if stemmer:
             word = stemmer.stem(word)
-        # viii. Canonicalize digits (convert digits to *uppercase* DG)
+        # vii. Canonicalize digits (convert digits to *uppercase* DG)
         if canonicalize_digits: 
             word = re.sub("\d", "DG", word)
         # viii. Canonicalize word. If you want to include words with
@@ -89,15 +84,17 @@ def tokenize(text, rmv_all_digits = False, require_letter = False,
         tokens.append(word)
     
     return tokens
-    
+
 
 # III. Episode concatenate function ------------------------------------------------------------
 
 def concat_eps_by_pod(df, min_desc_length = 50):
 
+    # 1. Filter to episodes longer than the desired length
     comb = df[(df['description'].str.len() > min_desc_length) & (~df['description'].isnull())]
     print('%d / %d episodes removed because len() < %d' % (df.shape[0] - comb.shape[0], df.shape[0], min_desc_length))
 
+    # 2. Concatenate episode descriptions by show
     comb = comb.groupby(['podcast_name' , 'subgenre']).apply(lambda x: ' '.join(x['description']))
     comb = comb.reset_index()
     comb.columns = ['podcast_name', 'subgenre', 'description']
