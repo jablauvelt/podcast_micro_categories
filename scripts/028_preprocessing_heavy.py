@@ -69,7 +69,7 @@ print((time.time() - start) / 60)
 print("Exporting")
 start = time.time()
 eps[['podcast_name', 'subgenre']].to_pickle('interim/028_preproc_heavy_eps.p')
-tdm.write_csv('interim/028_preproc_heavy_tdm.p', cutoff=1)
+tdm.write_csv('interim/028_preproc_heavy_tdm.p', cutoff=3)
 
 print((time.time() - start) / 60)
 print((time.time() - start0) / 60)
