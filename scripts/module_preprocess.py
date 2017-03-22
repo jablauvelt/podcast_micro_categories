@@ -90,3 +90,17 @@ def tokenize(text, rmv_all_digits = False, require_letter = False,
     
     return tokens
     
+
+# III. Episode concatenate function ------------------------------------------------------------
+
+def concat_eps_by_pod(df, min_desc_length = 50):
+
+    comb = df[(df['description'].str.len() > min_desc_length) & (~df['description'].isnull())]
+    print('%d / %d episodes removed because len() < %d' % (df.shape[0] - comb.shape[0], df.shape[0], min_desc_length))
+
+    comb = comb.groupby(['podcast_name' , 'subgenre']).apply(lambda x: ' '.join(x['description']))
+    comb = comb.reset_index()
+    comb.columns = ['podcast_name', 'subgenre', 'description']
+    print("%d unique podcasts with concatenated descriptions" % comb.shape[0])
+
+    return comb
