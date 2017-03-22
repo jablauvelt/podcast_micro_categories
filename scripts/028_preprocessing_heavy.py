@@ -15,21 +15,27 @@ import time
 
 import numpy as np
 import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer
 import nltk
-import textmining
 import pickle
 
 import module_preprocess
 
 start0 = time.time()
 
+# ~~~~~~~~
+# Specify whether you want the sample or not
+samp = False
+# ~~~~~~~~
+samp = '_samp' if samp else ''
+
 # I. LOAD --------------------------------------------------
 
 # Load files
 start = time.time()
-with open('interim/pods.p') as p:
+with open('interim/pods' + samp + '.p') as p:
 	pods = pickle.load(p)
-with open('interim/eps.p') as p:
+with open('interim/eps' + samp + '.p') as p:
 	eps = pickle.load(p)
                                      
 print("Episodes table shape: ", eps.shape)
@@ -42,37 +48,38 @@ print("Concatenating episodes by show")
 start = time.time()
 eps = module_preprocess.concat_eps_by_pod(eps)
 
-print((time.time() - start) / 60)
+print("Concatenation took: {:.2} minutes".format((time.time() - start) / 60))
 
-# III. TOKENIZE ---------------------------------------------
-
-# Define lemmatizer
-lemmatizer = nltk.stem.WordNetLemmatizer()
-
-# Define tokenizer
-def tokenizer(x):
-	return module_preprocess.tokenize(x,  rmv_all_digits = True, rmv_stopwords = True, stop_word_set = module_preprocess.stop_word_set, 
-             						   lowercase = True, lemmatize = True, lemmatizer = lemmatizer)
+# III. CONVERT TO TERM DOCUMENT MATRIX ---------------------------------------------
 
 print("Processing")
 start = time.time()
 
 # Create a Term Document Matrix out of the descriptions
-tdm = textmining.TermDocumentMatrix(tokenizer)
-for txt in eps['description']:
-    tdm.add_doc(txt)
+vectorizer = CountVectorizer(stop_words='english', min_df = 10, max_df=.1, 
+                             tokenizer= lambda x: module_preprocess.tokenize(x, rmv_all_digits=True, 
+                                                           lemmatizer=module_preprocess.lemmatizer))
+tdm = vectorizer.fit_transform(eps['description'])
 
-print((time.time() - start) / 60)
+print("Processing took: {:.2} minutes".format((time.time() - start) / 60))
 
 # IV. EXPORT -------------------------------------------------
 
 print("Exporting")
 start = time.time()
-eps[['podcast_name', 'subgenre']].to_pickle('interim/028_preproc_heavy_eps.p')
-tdm.write_csv('interim/028_preproc_heavy_tdm.p', cutoff=3)
 
-print((time.time() - start) / 60)
-print((time.time() - start0) / 60)
+# Save episode names and subgenres
+eps[['podcast_name', 'subgenre']].to_pickle('interim/028_preproc_heavy_eps' + samp + '.p')
+
+# Save TDM
+np.savez('interim/028_preproc_heavy_tdm' + samp + '.npz', data=tdm.data, indices=tdm.indices,
+         indptr=tdm.indptr, shape=tdm.shape)
+
+# Save feature names (columns of the sparse matrix)
+pd.DataFrame(vectorizer.get_feature_names(), columns=['word']).to_pickle('interim/028_preproc_heavy_names' + samp + '.p')
+
+print("Saving took: {:.2} minutes".format((time.time() - start) / 60))
+print("The whole process took: {:.2} minutes".format((time.time() - start0) / 60))
 
 # TODO
 # remove shows with fewer than X episodes
