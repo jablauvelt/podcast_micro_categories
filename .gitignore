@@ -3,3 +3,4 @@ interim/*
 */.ipynb_checkpoints/*
 scripts/*.pyc
 scripts/*~
+scripts/*.swp

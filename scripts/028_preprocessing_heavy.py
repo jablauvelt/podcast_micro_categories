@@ -27,14 +27,14 @@ start0 = time.time()
 
 # Load files
 start = time.time()
-with open('interim/pods_samp.p') as p:
+with open('interim/pods.p') as p:
 	pods = pickle.load(p)
-with open('interim/eps_samp.p') as p:
+with open('interim/eps.p') as p:
 	eps = pickle.load(p)
                                      
 print("Episodes table shape: ", eps.shape)
 print("Podcasts table shape: ", pods.shape)
-print((time.time() - start) / 60)
+print("Loading took: {:.2} minutes".format((time.time() - start) / 60))
 
 # II. CONCATENATE EPISODES BY SHOW----------------------------
 
