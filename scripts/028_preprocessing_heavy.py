@@ -46,7 +46,7 @@ print("Loading took: {:.2} minutes".format((time.time() - start) / 60))
 
 print("Concatenating episodes by show")
 start = time.time()
-eps = module_preprocess.concat_eps_by_pod(eps)
+shows_concat = module_preprocess.concat_eps_by_pod(eps)
 
 print("Concatenation took: {:.2} minutes".format((time.time() - start) / 60))
 
@@ -59,7 +59,7 @@ start = time.time()
 vectorizer = CountVectorizer(stop_words='english', min_df = 10, max_df=.1, 
                              tokenizer= lambda x: module_preprocess.tokenize(x, rmv_all_digits=True, 
                                                            lemmatizer=module_preprocess.lemmatizer))
-tdm = vectorizer.fit_transform(eps['description'])
+tdm = vectorizer.fit_transform(shows_concat['description'])
 
 print("Processing took: {:.2} minutes".format((time.time() - start) / 60))
 
@@ -69,7 +69,7 @@ print("Exporting")
 start = time.time()
 
 # Save episode names and subgenres
-eps[['podcast_name', 'subgenre']].to_pickle('interim/028_preproc_heavy_eps' + samp + '.p')
+shows_concat[['podcast_name', 'subgenre']].to_pickle('interim/028_preproc_heavy_shows_concat' + samp + '.p')
 
 # Save TDM
 np.savez('interim/028_preproc_heavy_tdm' + samp + '.npz', data=tdm.data, indices=tdm.indices,
