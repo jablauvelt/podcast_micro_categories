@@ -1,0 +1,106 @@
+---
+title: "LDA Subgenre Replication Attempt"
+output: html_notebook
+---
+
+
+```{r}
+
+library(dplyr, quietly = TRUE)
+library(readr, quietly = TRUE)
+library(ggplot2, quietly = TRUE)
+library(scales, quietly = TRUE)
+
+
+xx <- read_csv("../output/review_cats.csv", col_types = "idcccc")
+
+xx <- xx %>% filter(!is.na(topic))
+
+```
+
+## Number of podcasts per unsupervised subgenre
+
+```{r, out.height=11, fig.height=11}
+topic_counts <- xx %>% 
+  count(topic) %>% 
+  arrange(-n) %>% 
+  mutate(topic=factor(topic, levels=topic),
+         lab = ifelse(row_number() %in% c(1, length(topic)), n, NA))
+
+plt <- ggplot(tbl, aes(topic, n)) +
+  geom_bar(stat="identity") +
+  geom_label(aes(label=lab)) + 
+  coord_flip() + 
+  theme_bw() +
+  labs(title="Number of Shows in Each Unsupervised Subgenre", x="Unsupervised Category", y="Number of Shows")
+plt
+
+ggsave("../output/shows_per_subgenre.png", plt, width=9, height = 11)
+
+```
+
+
+
+# Distribution of actual subgenres within the created subgenres
+
+```{r, out.height=11, fig.height=11}
+subg_dist <- xx %>% 
+  group_by(topic, subgenre) %>% 
+  summarize(n_shows = n()) %>% 
+  group_by(topic) %>% 
+  mutate(n_shows_topic = sum(n_shows),
+         subgenre_pct_of_topic = n_shows / n_shows_topic) %>% 
+  ungroup() %>% 
+  arrange(-n_shows_topic, -subgenre_pct_of_topic) %>% 
+  mutate(topic = factor(topic, levels=unique(topic)))
+
+# 
+plt <- ggplot(subg_dist, aes(topic, n_shows, fill=n_shows)) + 
+  geom_bar(stat="identity", colour="grey75", position="fill") +
+  scale_y_continuous(labels=percent) +
+  coord_flip() +
+  theme_bw() +
+  labs(title=paste0("Distribution of Subgenres within Unsupervised Categories\n",
+                    "Each bar represents a different subgenre"),
+       x="Unsupervised Category", y="Percentage of Shows in Unsupervised Category", fill="Number of Shows in Subgenre") +
+  theme(legend.position="top")
+plt
+
+ggsave("../output/subgenre_distributions.png", width=14, height=11)
+```
+
+
+```{r, out.height=11, fig.height=11}
+top_k <- 3
+
+subg_dist_top <- subg_dist %>% 
+  group_by(topic) %>% 
+  mutate(ord = row_number(),
+         ymin = cumsum(lag(subgenre_pct_of_topic, default=0))) %>% 
+  ungroup() %>% 
+  filter(ord <= top_k) %>% 
+  mutate(xmin = as.integer(topic))
+  
+# 
+plt <- ggplot(subg_dist_top, aes(xmin=xmin, xmax=xmin+1, ymin=ymin, ymax=ymin+subgenre_pct_of_topic, fill=ord)) + 
+  geom_rect(colour="grey75") +
+  scale_x_continuous(breaks=.5+1:n_distinct(subg_dist_top$topic), labels=unique(subg_dist_top$topic)) + 
+  geom_text(aes(x = xmin + .5, y = ymin + .003, label=subgenre), colour="grey85", hjust=0) +
+  scale_y_continuous(labels=percent) +
+  coord_flip() +
+  theme_bw() +
+  labs(title=paste0("Distribution of Top ", top_k, " Subgenres within Unsupervised Categories\n",
+                    ""),
+       x="Unsupervised Category", y="Percentage of Shows in Unsupervised Category", fill="Number of Shows in Subgenre") +
+  theme(legend.position="none")
+plt
+
+ggsave("../output/subgenre_distributions_top.png", width=14, height=11)
+```
+# tbl2 <- tbl %>% 
+#   group_by(topic) %>% 
+#   summarize(n_shows = sum(n_shows),
+#             nu_subgenres = n(),
+#             pct_of_freq1 = subgenre_pct_of_topic[1],
+#             pct_of_freq2 = subgenre_pct_of_topic[2],
+#             pct_of_freq3 = subgenre_pct_of_topic[3])

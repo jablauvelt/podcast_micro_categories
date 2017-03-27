@@ -4,3 +4,4 @@ interim/*
 scripts/*.pyc
 scripts/*~
 scripts/*.swp
+output/*
