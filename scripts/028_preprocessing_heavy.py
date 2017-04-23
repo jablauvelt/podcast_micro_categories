@@ -16,6 +16,7 @@ import time
 import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 import nltk
 import pickle
 
@@ -25,7 +26,7 @@ start0 = time.time()
 
 # ~~~~~~~~
 # Specify whether you want the sample or not
-samp = False
+samp = True
 # ~~~~~~~~
 samp = '_samp' if samp else ''
 
@@ -55,13 +56,19 @@ print("Concatenation took: {:.2} minutes".format((time.time() - start) / 60))
 print("Processing")
 start = time.time()
 
-# Create a Term Document Matrix out of the descriptions
+# Create Term Document Matrices out of the descriptions
+tdfVectorizer = TfidfVectorizer(stop_words='english', min_df = 10, max_df=.1, 
+                             tokenizer= lambda x: module_preprocess.tokenize(x, rmv_all_digits=True, 
+                                                           lemmatizer=module_preprocess.lemmatizer))
+tfidf_tdm = tdfVectorizer.fit_transform(shows_concat['description'])
+
 vectorizer = CountVectorizer(stop_words='english', min_df = 10, max_df=.1, 
                              tokenizer= lambda x: module_preprocess.tokenize(x, rmv_all_digits=True, 
                                                            lemmatizer=module_preprocess.lemmatizer))
 tdm = vectorizer.fit_transform(shows_concat['description'])
 
 print("Processing took: {:.2} minutes".format((time.time() - start) / 60))
+
 
 # IV. EXPORT -------------------------------------------------
 
@@ -71,9 +78,12 @@ start = time.time()
 # Save episode names and subgenres
 shows_concat[['podcast_name', 'subgenre']].to_pickle('interim/028_preproc_heavy_shows_concat' + samp + '.p')
 
-# Save TDM
+# Save TDMs
 np.savez('interim/028_preproc_heavy_tdm' + samp + '.npz', data=tdm.data, indices=tdm.indices,
          indptr=tdm.indptr, shape=tdm.shape)
+
+np.savez('interim/028_preproc_heavy_tfidf_tdm' + samp + '.npz', data=tfidf_tdm.data, indices=tfidf_tdm.indices,
+         indptr=tfidf_tdm.indptr, shape=tfidf_tdm.shape)
 
 # Save feature names (columns of the sparse matrix)
 pd.DataFrame(vectorizer.get_feature_names(), columns=['word']).to_pickle('interim/028_preproc_heavy_names' + samp + '.p')
