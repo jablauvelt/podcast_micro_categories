@@ -8,6 +8,23 @@ import pandas as pd
 from IPython.display import display, HTML
 import jinja2
 
+class corpus:
+    def __init__(self,document):
+        sentence_list=[]
+        for sentence in document.split('.'):
+            sentence_list.append(sentence.split(' '))
+        self.sentences = np.asarray(sentence_list);
+        print self.sentences.shape
+        wordlist = []
+        for word in document.split(' '):
+            if word not in wordlist:
+                wordlist.append(word)
+        self.words = np.asarray(wordlist)
+    def words(self):
+        return self.words
+    def sents(self):
+        return self.sentences
+    
 def flatten(list_of_lists):
     """Flatten a list-of-lists into a single list."""
     return list(itertools.chain.from_iterable(list_of_lists))
@@ -110,9 +127,6 @@ def canonicalize_words(words, **kw):
 import nltk
 import a3vocabulary
 
-def get_corpus(name="brown"):
-    return nltk.corpus.__getattr__(name)
-
 def sents_to_tokens(sents, vocab):
     """Returns an flattened list of the words in the sentences, with normal padding."""
     padded_sentences = (["<s>"] + s + ["</s>"] for s in sents)
@@ -121,7 +135,7 @@ def sents_to_tokens(sents, vocab):
                      for w in flatten(padded_sentences)], dtype=object)
 
 def build_vocab(corpus, V=10000):
-    token_feed = (canonicalize_word(w) for w in corpus.words())
+    token_feed = (canonicalize_word(w) for w in corpus.words)
     vocab = a3vocabulary.Vocabulary(token_feed, size=V)
     return vocab
 
@@ -176,11 +190,12 @@ def preprocess_sentences(sentences, vocab):
 
 ##
 # Use this function
-def load_corpus(name, split=0.8, V=10000, shuffle=0):
+# data is a single document
+def load_corpus(data, split=0.8, V=10000, shuffle=0):
     """Load a named corpus and split train/test along sentences."""
-    corpus = get_corpus(name)
-    vocab = build_vocab(corpus, V)
-    train_sentences, test_sentences = get_train_test_sents(corpus, split, shuffle)
+    corp = corpus(data)
+    vocab = build_vocab(corp, V)
+    train_sentences, test_sentences = get_train_test_sents(corp, split, shuffle)
     train_ids = preprocess_sentences(train_sentences, vocab)
     test_ids = preprocess_sentences(test_sentences, vocab)
     return vocab, train_ids, test_ids
