@@ -10,6 +10,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.grid_search import GridSearchCV
 from sklearn.cross_validation import ShuffleSplit
 from sklearn.cross_validation import train_test_split
+from sklearn.metrics.pairwise import cosine_similarity
 
 # randomly reserve 10% of data and split the rest 75%-25% into train/test
 def random_data_split(x_data, y_data):
@@ -63,3 +64,29 @@ def lr_test(x_train_counts, y_train, x_dev_vectors , y_dev):
     f1_score = metrics.f1_score( y_dev, predictions, average = 'weighted' )  
     
     return clf.best_score_ * 100.0, clf.best_params_['C'], f1_score * 100.0
+
+# find nearest neighbors of a given description using cosine similarity
+def find_nn_cos( v, Dv, k=10):
+    '''
+    v: (d dimensional vector) representing the decription of interest 
+    Dv: ( D x d matrix) decriptions
+    k: number of neighbors to return
+    
+    returns (nns, ds):
+    nns: (k-element vector of ints), 
+         row indices of nearest neighbors, including the given description
+    ds: (k-element vector of floats), 
+        cosine similarity of each neighbor in nns
+    '''
+    def compute_cos_sim( wRow, v ):
+        return (np.dot(v, wRow) / (np.linalg.norm(v) * np.linalg.norm(wRow)) * 1.0)
+
+    # apply the function to all rows in Wv
+    kwargs = {"v" : v }
+    cs_arr = np.apply_along_axis(compute_cos_sim, 1, Dv, **kwargs )
+
+    # get the list of indices for the top k values in cs_arr (sorting in )
+    idx_arr = np.array(cs_arr).argsort()[::-1][:k]
+    
+    return idx_arr, np.array(cs_arr)[idx_arr]
+    

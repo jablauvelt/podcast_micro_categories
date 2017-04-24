@@ -14,6 +14,7 @@ def run_epoch(lm, session, batch_iterator,
     total_batches = 0
     total_words = 0
 
+    h = None
     verbose=True
     
     if train:
@@ -56,7 +57,10 @@ def run_epoch(lm, session, batch_iterator,
                 i, total_words, avg_wps, avg_cost)
             tick_time = time.time()  # reset time ticker
 
-    return total_cost / total_batches, h
+    ret = 0
+    if total_batches != 0:
+        ret = total_cost / total_batches
+    return ret, h
 
 def score_dataset(lm, session, ids, name="Data", is_final=False):
     # For scoring, we can use larger batches to speed things up.
@@ -66,12 +70,12 @@ def score_dataset(lm, session, ids, name="Data", is_final=False):
                      learning_rate=1.0, train=False, 
                      verbose=True, tick_s=3600)
     print "%s: avg. loss: %.03f  (perplexity: %.02f)" % (name, cost, np.exp(cost))
-    if is_final:
+    if is_final and h is not None:
         final_h = h[0][1]
     return final_h
     
     
-def execute_rnnlm(model_params, training_params, vocab, train_ids, test_ids):
+def execute_rnnlm(model_params, training_params, vocab, train_ids, test_ids, verbose=False):
     # Will print status every this many seconds
     print_interval = 15
 
@@ -114,7 +118,7 @@ def execute_rnnlm(model_params, training_params, vocab, train_ids, test_ids):
             # Run a training epoch.
 
             v = run_epoch(lm, session, bi,
-                  train=True, verbose=True,
+                  train=True, verbose=verbose,
                   tick_s=print_interval, learning_rate=learning_rate)
 
             #### END(YOUR CODE) ####
