@@ -26,7 +26,7 @@ start0 = time.time()
 
 # ~~~~~~~~
 # Specify whether you want the sample or not
-samp = True
+samp = False
 # ~~~~~~~~
 samp = '_samp' if samp else ''
 
@@ -77,6 +77,9 @@ start = time.time()
 
 # Save episode names and subgenres
 shows_concat[['podcast_name', 'subgenre']].to_pickle('interim/028_preproc_heavy_shows_concat' + samp + '.p')
+
+# Save descriptions
+shows_concat[['description']].to_pickle('interim/028_preproc_heavy_show_description_concat' + samp + '.p')
 
 # Save TDMs
 np.savez('interim/028_preproc_heavy_tdm' + samp + '.npz', data=tdm.data, indices=tdm.indices,
