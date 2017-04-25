@@ -8,6 +8,7 @@
 #        nltk.download('stopwords')
 #        nltk.download('wordnet') 
 #        nltk.download('punkt') 
+#        nltk.download("maxent_treebank_pos_tagger")
 
 from __future__ import print_function
 from __future__ import division
@@ -23,10 +24,13 @@ from nltk.corpus import stopwords
 ### I. Define helper sets -------------------------------------------
 
 # A. Stop words
-stop_word_set = set(stopwords.words("english"))
+stop_word_set = set(stopwords.words("english") + ['download', 'downloads', 'free', 'preview', 'subscribe', 'listen', 'listening', 'itunes', 'audio', 'comment', 'question', 
+                      'recorded', 'episode', 'listener', 'podcast', 'podcasts', 'podcasting', 'blog', 'series', 'rate', 'rating', 'listening', 'enjoy', 'sponsor', 'support', 
+                      'review', 'http', 'instagram', 'twitter', 'youtube', 'coupon', 'code', 'promo', '`', '``'])
 
 # B. Lemmatizer
 lemmatizer = nltk.stem.WordNetLemmatizer()
+
 
         
 ### II. Tokenizer function -------------------------------------------------------
@@ -34,7 +38,8 @@ lemmatizer = nltk.stem.WordNetLemmatizer()
 # Tokenize a single text block
 def tokenize(text, rmv_all_digits = False, require_letter = False, 
              canonicalize_digits = False, lowercase = False, lemmatizer = None,
-             stemmer = None, canonicalize_word = False, canon = None):
+             stemmer = None, canonicalize_word = False, canon = None,
+             proper = False):
 
     # For lemmatizer: Try nltk.stem.WordNetLemmatizer()
     # For stemmer: Try nltk.stem.SnowballStemmer('english')
@@ -47,8 +52,14 @@ def tokenize(text, rmv_all_digits = False, require_letter = False,
     if lemmatizer and stemmer:
         return "Do not lemmatize *and* stem - choose one"
     
-   
-    # 2. Loop through the words in the text block and apply preprocessing steps
+    # 2. If specified, look for only proper nouns and skip everything else
+    if proper:
+        x = nltk.word_tokenize(text)
+        y = nltk.pos_tag(x)
+        return [w for w, p in y if p == 'NNP']  
+
+  
+    # 3. Loop through the words in the text block and apply preprocessing steps
     tokens = []
     for word in nltk.word_tokenize(text):
 
@@ -58,7 +69,7 @@ def tokenize(text, rmv_all_digits = False, require_letter = False,
         if rmv_all_digits:
             word = re.sub(ur"\d", "", word)
         # iii. Check word length
-        if len(word) < 2:
+        if len(word) < 4:
                 continue
         # iv. Require letter
         if require_letter and not re.search('[a-zA-Z]', word):

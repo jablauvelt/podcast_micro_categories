@@ -56,16 +56,16 @@ print("Processing")
 start = time.time()
 
 # Create a Term Document Matrix out of the descriptions
-vectorizer = CountVectorizer(stop_words=module_preprocess.stop_word_set, min_df = 10, max_df=.1, ngram_range = (2, 2),
-                             tokenizer= lambda x: module_preprocess.tokenize(x, rmv_all_digits=True, 
-                                                                            lemmatizer=module_preprocess.lemmatizer))
+vectorizer = CountVectorizer(stop_words=module_preprocess.stop_word_set, min_df = 10, max_df=.05, ngram_range = (2, 2),
+                             lowercase=False,
+                             tokenizer= lambda x: module_preprocess.tokenize(x, proper=True))
 tdm = vectorizer.fit_transform(shows_concat['description'])
 
 print("Processing took: {:.2} minutes".format((time.time() - start) / 60))
 
 # IV. EXPORT -------------------------------------------------
 
-preproc = 's4'
+preproc = 's6'
 
 print("Exporting")
 start = time.time()
@@ -87,3 +87,4 @@ print("The whole process took: {:.2} minutes".format((time.time() - start0) / 60
 # TODO
 # remove shows with fewer than X episodes
 # add show summary descriptions?
+

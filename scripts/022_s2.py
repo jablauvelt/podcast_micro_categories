@@ -56,7 +56,7 @@ print("Processing")
 start = time.time()
 
 # Create a Term Document Matrix out of the descriptions
-vectorizer = CountVectorizer(stop_words=module_preprocess.stop_word_set, min_df = 10, max_df=.1, ngram_range = (2, 2),
+vectorizer = CountVectorizer(stop_words=module_preprocess.stop_word_set, min_df = 10, max_df=.10, ngram_range = (1, 1),
                              tokenizer= lambda x: module_preprocess.tokenize(x, rmv_all_digits=True, 
                                                                             lemmatizer=module_preprocess.lemmatizer))
 tdm = vectorizer.fit_transform(shows_concat['description'])
@@ -65,20 +65,20 @@ print("Processing took: {:.2} minutes".format((time.time() - start) / 60))
 
 # IV. EXPORT -------------------------------------------------
 
-preproc = 's4'
+scenario = 's2'
 
 print("Exporting")
 start = time.time()
 
 # Save episode names and subgenres
-shows_concat[['podcast_name', 'subgenre']].to_pickle('interim/' + preproc + '_shows_concat' + samp + '.p')
+shows_concat[['podcast_name', 'subgenre']].to_pickle('interim/' + scenario + '_shows_concat' + samp + '.p')
 
 # Save TDM
-np.savez('interim/' + preproc + '_tdm' + samp + '.npz', data=tdm.data, indices=tdm.indices,
+np.savez('interim/' + scenario + '_tdm' + samp + '.npz', data=tdm.data, indices=tdm.indices,
          indptr=tdm.indptr, shape=tdm.shape)
 
 # Save feature names (columns of the sparse matrix)
-pd.DataFrame(vectorizer.get_feature_names(), columns=['word']).to_pickle('interim/' + preproc + '_names' + samp + '.p')
+pd.DataFrame(vectorizer.get_feature_names(), columns=['word']).to_pickle('interim/' + scenario + '_names' + samp + '.p')
 
 # 2.5 minutes for sample, 25 for the full set
 print("Saving took: {:.2} minutes".format((time.time() - start) / 60))
@@ -87,3 +87,4 @@ print("The whole process took: {:.2} minutes".format((time.time() - start0) / 60
 # TODO
 # remove shows with fewer than X episodes
 # add show summary descriptions?
+
