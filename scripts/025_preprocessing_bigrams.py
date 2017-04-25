@@ -34,9 +34,9 @@ samp = '_samp' if samp else ''
 # Load files
 start = time.time()
 with open('interim/pods' + samp + '.p') as p:
-	pods = pickle.load(p)
+    pods = pickle.load(p)
 with open('interim/eps' + samp + '.p') as p:
-	eps = pickle.load(p)
+    eps = pickle.load(p)
                                      
 print("Episodes table shape: ", eps.shape)
 print("Podcasts table shape: ", pods.shape)
@@ -56,16 +56,16 @@ print("Processing")
 start = time.time()
 
 # Create a Term Document Matrix out of the descriptions
-vectorizer = CountVectorizer(stop_words='english', min_df = 10, max_df=.1, 
+vectorizer = CountVectorizer(stop_words='english', min_df = 10, max_df=.1, ngram_range = (2, 2),
                              tokenizer= lambda x: module_preprocess.tokenize(x, rmv_all_digits=True, 
-                                                           lemmatizer=module_preprocess.lemmatizer))
+                                                                            lemmatizer=module_preprocess.lemmatizer))
 tdm = vectorizer.fit_transform(shows_concat['description'])
 
 print("Processing took: {:.2} minutes".format((time.time() - start) / 60))
 
 # IV. EXPORT -------------------------------------------------
 
-preproc = '028_preproc_heavy_shows_concat'
+preproc = '025_preproc_bigrams'
 
 print("Exporting")
 start = time.time()
