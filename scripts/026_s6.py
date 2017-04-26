@@ -25,7 +25,7 @@ start0 = time.time()
 
 # ~~~~~~~~
 # Specify whether you want the sample or not
-samp = False
+samp = True
 # ~~~~~~~~
 samp = '_samp' if samp else ''
 

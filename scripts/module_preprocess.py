@@ -52,15 +52,18 @@ def tokenize(text, rmv_all_digits = False, require_letter = False,
     if lemmatizer and stemmer:
         return "Do not lemmatize *and* stem - choose one"
     
+    tokens = []
+
     # 2. If specified, look for only proper nouns and skip everything else
     if proper:
-        x = nltk.word_tokenize(text)
-        y = nltk.pos_tag(x)
-        return [w for w, p in y if p == 'NNP']  
+        for sent in nltk.sent_tokenize(text):
+            x = nltk.word_tokenize(sent)
+            y = nltk.pos_tag(x)
+            tokens += [w for w, p in y if p == 'NNP']
+        return tokens
 
   
     # 3. Loop through the words in the text block and apply preprocessing steps
-    tokens = []
     for word in nltk.word_tokenize(text):
 
         # i. Remove punctuation (always on)
