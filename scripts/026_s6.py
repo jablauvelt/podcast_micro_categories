@@ -25,7 +25,7 @@ start0 = time.time()
 
 # ~~~~~~~~
 # Specify whether you want the sample or not
-samp = True
+samp = False
 # ~~~~~~~~
 samp = '_samp' if samp else ''
 
@@ -58,7 +58,7 @@ start = time.time()
 # Create a Term Document Matrix out of the descriptions
 vectorizer = CountVectorizer(stop_words=module_preprocess.stop_word_set, min_df = 10, max_df=.05, ngram_range = (2, 2),
                              lowercase=False,
-                             tokenizer= lambda x: module_preprocess.tokenize(x, proper=True))
+                             tokenizer= lambda x: module_preprocess.tokenize(x, rmv_all_digits=True))
 tdm = vectorizer.fit_transform(shows_concat['description'])
 
 print("Processing took: {:.2} minutes".format((time.time() - start) / 60))
