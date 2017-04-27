@@ -26,7 +26,7 @@ start0 = time.time()
 
 # ~~~~~~~~
 # Specify whether you want the sample or not
-samp = False
+samp = True
 # ~~~~~~~~
 samp = '_samp' if samp else ''
 
@@ -79,7 +79,14 @@ start = time.time()
 shows_concat[['podcast_name', 'subgenre']].to_pickle('interim/028_preproc_heavy_shows_concat' + samp + '.p')
 
 # Save descriptions
-shows_concat[['description']].to_pickle('interim/028_preproc_heavy_show_description_concat' + samp + '.p')
+lst=[]
+desc = shows_concat[['description']]
+for i in range(1, desc.shape[0]):
+    text = module_preprocess.tokenize(desc[i][0], rmv_all_digits=True, lowercase = True, lemmatizer=module_preprocess.lemmatizer)
+    lst.append(text)
+
+with open('interim/028_preproc_heavy_show_description_concat' + samp + '.p', 'wb') as f:
+    pickle.dump(lst,f)    
 
 # Save TDMs
 np.savez('interim/028_preproc_heavy_tdm' + samp + '.npz', data=tdm.data, indices=tdm.indices,

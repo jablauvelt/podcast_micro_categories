@@ -15,6 +15,7 @@ from __future__ import division
 from sklearn.feature_extraction.text import CountVectorizer
 import string
 import regex as re
+import numpy as np
 import nltk
 from nltk.corpus import stopwords
 
@@ -28,6 +29,7 @@ stop_word_set = set(stopwords.words("english"))
 # B. Lemmatizer
 lemmatizer = nltk.stem.WordNetLemmatizer()
 
+stemmer = nltk.stem.SnowballStemmer('english')
         
 ### II. Tokenizer function -------------------------------------------------------
 
@@ -38,7 +40,7 @@ def tokenize(text, rmv_all_digits = False, require_letter = False,
 
     # For lemmatizer: Try nltk.stem.WordNetLemmatizer()
     # For stemmer: Try nltk.stem.SnowballStemmer('english')
-    
+        
     # 1. Check argument consistency
     if canonicalize_word and not canon:
         return "Error: If canonicalize_word = True, you need to specify *canon*"
@@ -47,13 +49,14 @@ def tokenize(text, rmv_all_digits = False, require_letter = False,
     if lemmatizer and stemmer:
         return "Do not lemmatize *and* stem - choose one"
     
-   
     # 2. Loop through the words in the text block and apply preprocessing steps
     tokens = []
     for word in nltk.word_tokenize(text):
 
         # i. Remove punctuation (always on)
         word = re.sub(ur"\p{P}+", "", word)
+        if lowercase:
+            word = word.lower()
         # ii. Remove all digits
         if rmv_all_digits:
             word = re.sub(ur"\d", "", word)
