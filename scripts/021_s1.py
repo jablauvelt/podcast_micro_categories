@@ -65,7 +65,7 @@ print("Processing took: {:.2} minutes".format((time.time() - start) / 60))
 
 # IV. EXPORT -------------------------------------------------
 
-preproc = '028_preproc_heavy_shows_concat'
+preproc = 's1'
 
 print("Exporting")
 start = time.time()
