@@ -72,6 +72,7 @@ def lr_test(x_train_counts, y_train, x_dev_vectors , y_dev):
     
     return clf.best_score_ * 100.0, clf.best_params_['C'], f1_score * 100.0
 
+
 # find nearest neighbors of a given description using cosine similarity
 def find_nn_cos( v, Dv, k=10):
     '''
@@ -92,10 +93,18 @@ def find_nn_cos( v, Dv, k=10):
     kwargs = {"v" : v }
     cs_arr = np.apply_along_axis(compute_cos_sim, 1, Dv, **kwargs )
 
-    # get the list of indices for the top k values in cs_arr (sorting in )
-    idx_arr = np.array(cs_arr).argsort()[::-1][:k]
+    idx_arr = np.array(cs_arr).argsort()[::-1]
+    cs_arr = cs_arr[idx_arr]
     
-    return idx_arr, np.array(cs_arr)[idx_arr]
+    # remove NaN
+    d_idx = []
+    for i in range(0, cs_arr.shape[0]):
+        if np.isnan(cs_arr[i]):
+            d_idx.append(i)
+            
+    cs_arr = np.delete(cs_arr, d_idx)
+    idx_arr = np.delete(idx_arr, d_idx)
+    return idx_arr[:k], cs_arr[:k]
 
 def batch_generator(ids, batch_size, max_time):
     """Convert ids to data-matrix form."""
