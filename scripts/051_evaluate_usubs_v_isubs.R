@@ -12,7 +12,7 @@ library(reshape2)
 options(scipen = 30)
 
 #*****
-scen <- "1"
+scen <- "6"
 #*****
 
 # LOAD MAP FILE -----------------------------------------------------------
@@ -93,7 +93,7 @@ ggplot(ll, aes(prob)) + geom_histogram() + theme_bw()
 # OUTPUT ------------------------------------------------------------------
 
 # Log likelihood
-print(paste0("Log-likelihood: ", round(sum(log(ll$prob, base=2) * ll$prob), 2)))
+print(paste0("Log-likelihood: ", round(sum(log(ll$prob, base=2)), 2)))
 
 # Print number of usubs that map to isubs
 print(paste0(sum(!is.na(map$closest_isub)), "/56 usubs were mapped to isubs"))
