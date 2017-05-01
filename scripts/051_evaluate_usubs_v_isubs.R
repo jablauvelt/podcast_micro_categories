@@ -12,7 +12,7 @@ library(reshape2)
 options(scipen = 30)
 
 #*****
-scen <- "6"
+scen <- "2"
 #*****
 
 # LOAD MAP FILE -----------------------------------------------------------
