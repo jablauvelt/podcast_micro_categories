@@ -129,7 +129,7 @@ y_ is a vector of labels of length d
 x_arr is a matrix of vectors of length d, width v
 '''
 def scoreVectorArray_CosSim(y_, x_arr):
-    k=3
+    k=10
     y_pred=[]
     y_true=[]
     result=[]
